@@ -13,7 +13,7 @@ import os
 ##### add info below ####
 
 file_path = r"C:\Users\marta\OneDrive - Hydrosat\lorena_one_drive\cwp_project\output\CWP_yield_wheat_2023.xlsx" # path to your file
-output_dir = r"C:\Users\marta\OneDrive - Hydrosat\lorena_one_drive\cwp_project\output\corr_plots\test\rice_first_code_sec_total_final_test" #"#CWP\all_countries_per_year_rice_test_other_crops_together"
+output_dir = r"C:\Users\marta\OneDrive - Hydrosat\lorena_one_drive\cwp_project\output\corr_plots\test\testrices" #"rice_first_code_sec_total_final_test" #"#CWP\all_countries_per_year_rice_test_other_crops_together"
 
 crops = ["cotton", "barley", "maize", "cotton", "wheat", "rice_rabi", "rice_kharif"]  # Add the crops you want
 start_year = 2019 # first year of the plot
@@ -79,6 +79,56 @@ for crop in crops:
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         plt.close()
 
+
+
+####  rice only , kharif and rabi in the same plot
+
+output_dir = r"C:\Users\marta\OneDrive - Hydrosat\lorena_one_drive\cwp_project\output\corr_plots\test\rice_second_code_third_total_riceonly" #"#CWP\all_countries_per_year_rice_test_other_crops_together"
+os.makedirs(output_dir, exist_ok=True)
+
+# Special handling for rice (combine kharif and rabi)
+df_rice = df[(df["crop_descrip"] == "rice") & (df["aez_used"] == "country")]
+
+for year in years:
+    df2 = df_rice[df_rice["year"] == year]
+
+    if df2.empty:
+        continue
+
+    plt.figure(figsize=(8, 6))
+    plt.scatter(df2["yield"], df2["CWP_kg_per_m3"], s=80, color="#8b9ada")
+
+    for _, row in df2.iterrows():
+        season_label = row["season"] if "season" in row and pd.notna(row["season"]) else ""
+        label = f"India - {season_label}"
+        plt.text(
+            row["yield"], row["CWP_kg_per_m3"],
+            label,
+            fontsize=9, ha="right", va="bottom"
+        )
+
+    x_min = 0
+    x_max = df2["yield"].max()
+    y_min = 0
+    y_max = df2["CWP_kg_per_m3"].max()
+    x_interval = 500
+    y_interval = 0.1
+
+    plt.xticks(np.arange(x_min, x_max + x_interval, x_interval))
+    plt.yticks(np.arange(y_min, y_max + y_interval, y_interval))
+    plt.xlim(x_min, x_max + x_interval)
+    plt.ylim(y_min, y_max + y_interval)
+
+    plt.grid(True, which="major", linestyle="--", linewidth=0.5, alpha=0.7)
+    plt.xlabel("Yield (kg/ha)")
+    plt.ylabel("Water Productivity (kg/m3)")
+    plt.title(f"Water productivity for rice in India ({year})")
+    plt.tight_layout()
+
+    file_name = f"Water productivity for rice in India ({year}).png"
+    save_path = os.path.join(output_dir, file_name)
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
 
 
 
